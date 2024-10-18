@@ -1,1 +1,1 @@
-https://scriptblox.com/u/coyx
+# Check out my scripts: https://scriptblox.com/u/coyx
