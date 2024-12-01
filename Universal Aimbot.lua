@@ -18,6 +18,7 @@ local rainbowFov = false
 local rainbowSpeed = 0.005
 
 local aimFov = 100
+local aimParts = {"Head"}
 local aiming = false
 local predictionStrength = 0.065
 local smoothing = 0.05
@@ -93,28 +94,46 @@ local function checkWall(targetCharacter)
     return raycastResult and raycastResult.Instance ~= nil
 end
 
-local function getTarget()
-    local nearestPlayer = nil
+local function getClosestPart(character)
+    local closestPart = nil
     local shortestCursorDistance = aimFov
-    local shortestPlayerDistance = math.huge
     local cameraPos = camera.CFrame.Position
 
-    for _, player in ipairs(players:GetPlayers()) do
-        if player ~= plr and player.Character and player.Character:FindFirstChild("Head") and not checkTeam(player) then
-            if player.Character.Humanoid.Health >= minHealth or not healthCheck then
-                local head = player.Character.Head
-                local headPos = camera:WorldToViewportPoint(head.Position)
-                local screenPos = Vector2.new(headPos.X, headPos.Y)
-                local mousePos = Vector2.new(mouse.X, mouse.Y)
-                local cursorDistance = (screenPos - mousePos).Magnitude
-                local playerDistance = (head.Position - cameraPos).Magnitude
+    for _, partName in ipairs(aimParts) do
+        local part = character:FindFirstChild(partName)
+        if part then
+            local partPos = camera:WorldToViewportPoint(part.Position)
+            local screenPos = Vector2.new(partPos.X, partPos.Y)
+            local cursorDistance = (screenPos - Vector2.new(mouse.X, mouse.Y)).Magnitude
 
-                if cursorDistance < shortestCursorDistance and headPos.Z > 0 then
-                    if not checkWall(player.Character) or not wallCheck then
-                        if playerDistance < shortestPlayerDistance then
-                            shortestPlayerDistance = playerDistance
+            if cursorDistance < shortestCursorDistance and partPos.Z > 0 then
+                shortestCursorDistance = cursorDistance
+                closestPart = part
+            end
+        end
+    end
+
+    return closestPart
+end
+
+local function getTarget()
+    local nearestPlayer = nil
+    local closestPart = nil
+    local shortestCursorDistance = aimFov
+
+    for _, player in ipairs(players:GetPlayers()) do
+        if player ~= plr and player.Character and not checkTeam(player) then
+            if player.Character.Humanoid.Health >= minHealth or not healthCheck then
+                local targetPart = getClosestPart(player.Character)
+                if targetPart then
+                    local screenPos = camera:WorldToViewportPoint(targetPart.Position)
+                    local cursorDistance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+
+                    if cursorDistance < shortestCursorDistance then
+                        if not checkWall(player.Character) or not wallCheck then
                             shortestCursorDistance = cursorDistance
                             nearestPlayer = player
+                            closestPart = targetPart
                         end
                     end
                 end
@@ -122,14 +141,13 @@ local function getTarget()
         end
     end
 
-    return nearestPlayer
+    return nearestPlayer, closestPart
 end
 
-local function predict(player)
-    if player and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("HumanoidRootPart") then
-        local head = player.Character.Head
+local function predict(player, part)
+    if player and part then
         local velocity = player.Character.HumanoidRootPart.Velocity
-        local predictedPosition = head.Position + (velocity * predictionStrength)
+        local predictedPosition = part.Position + (velocity * predictionStrength)
         return predictedPosition
     end
     return nil
@@ -139,8 +157,8 @@ local function smooth(from, to)
     return from:Lerp(to, smoothing)
 end
 
-local function aimAt(player)
-    local predictedPosition = predict(player)
+local function aimAt(player, part)
+    local predictedPosition = predict(player, part)
     if predictedPosition then
         if player.Character.Humanoid.Health >= minHealth or not healthCheck then
             local targetCFrame = CFrame.new(camera.CFrame.Position, predictedPosition)
@@ -178,11 +196,13 @@ RunService.RenderStepped:Connect(function()
             end
 
             if not stickyAimEnabled or not currentTarget then
-                currentTarget = getTarget()
+                local target, targetPart = getTarget()
+                currentTarget = target
+                currentTargetPart = targetPart
             end
 
-            if currentTarget then
-                aimAt(currentTarget)
+            if currentTarget and currentTargetPart then
+                aimAt(currentTarget, currentTargetPart)
             end
         else
             currentTarget = nil
@@ -236,6 +256,17 @@ local aimbot = Aimbot:CreateToggle({
     end
 })
 
+local aimpart = Aimbot:CreateDropdown({
+    Name = "Aim Part",
+    Options = {"Head","HumanoidRootPart","Left Arm","Right Arm","Torso","Left Leg","Right Leg"},
+    CurrentOption = {"Head"},
+    MultipleOptions = true,
+    Flag = "AimPart",
+    Callback = function(Options)
+        aimParts = Options
+    end,
+ })
+
 local smoothingslider = Aimbot:CreateSlider({
     Name = "Smoothing",
     Range = {0, 100},
@@ -256,6 +287,15 @@ local predictionstrength = Aimbot:CreateSlider({
     Callback = function(Value)
         predictionStrength = Value
     end,
+})
+
+local fovvisibility = Aimbot:CreateToggle({
+    Name = "Fov Visibility",
+    CurrentValue = true,
+    Flag = "FovVisibility",
+    Callback = function(Value)
+        fovCircle.Visible = Value
+    end
 })
 
 local aimbotfov = Aimbot:CreateSlider({
