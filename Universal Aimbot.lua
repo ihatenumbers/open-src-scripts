@@ -6,8 +6,20 @@ local TeleportService = game:GetService("TeleportService")
 local players = game:GetService("Players")
 local wrk = game:GetService("Workspace")
 local plr = players.LocalPlayer
-local hrp = plr.Character:WaitForChild("HumanoidRootPart")
-local humanoid = plr.Character:WaitForChild("Humanoid")
+local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+local humanoid = plr.Character:FindFirstChild("Humanoid")
+
+local function onCharacterAdded(character)
+    hrp = character:WaitForChild("HumanoidRootPart")
+    humanoid = character:WaitForChild("Humanoid")
+end
+
+plr.CharacterAdded:Connect(onCharacterAdded)
+
+if plr.Character then
+    onCharacterAdded(plr.Character)
+end
+
 local camera = wrk.CurrentCamera
 local mouse = plr:GetMouse()
 
