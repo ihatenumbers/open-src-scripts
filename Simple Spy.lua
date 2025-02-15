@@ -2041,20 +2041,50 @@ newButton("Run Code",
         if Remote then
             TextLabel.Text = "Executing..."
             xpcall(function()
-                local returnvalue
                 if Remote:IsA("RemoteEvent") or Remote:IsA("UnreliableRemoteEvent") then
                     returnvalue = Remote:FireServer(unpack(selected.args))
                 elseif Remote:IsA("RemoteFunction") then
                     returnvalue = Remote:InvokeServer(unpack(selected.args))
                 end
 
-                TextLabel.Text = ("Executed successfully!\n%s"):format(v2s(returnvalue))
+                TextLabel.Text = ("Executed successfully!")
             end,function(err)
-                TextLabel.Text = ("Execution error!\n%s"):format(err)
+                TextLabel.Text = ("Execution error!")
             end)
             return
         end
         TextLabel.Text = "Source not found"
+    end
+)
+
+local loopRunEnabled = false
+newButton("Loop Run",
+    function()
+        return string.format("[%s] Repeatedly run the selected remote", loopRunEnabled and "ENABLED" or "DISABLED")
+    end,
+    function()
+        loopRunEnabled = not loopRunEnabled
+        TextLabel.Text = string.format("[%s] Repeatedly run the selected remote", loopRunEnabled and "ENABLED" or "DISABLED")
+
+        if loopRunEnabled then
+            task.spawn(function()
+                while loopRunEnabled do
+                    local Remote = selected and selected.Remote
+                    if Remote and selected and selected.args then
+                        xpcall(function()
+                            if Remote:IsA("RemoteEvent") or Remote:IsA("UnreliableRemoteEvent") then
+                                Remote:FireServer(unpack(selected.args))
+                            elseif Remote:IsA("RemoteFunction") then
+                                Remote:InvokeServer(unpack(selected.args))
+                            end
+                        end, function(err)
+                            warn("Loop Run Error: ", err)
+                        end)
+                    end
+                    task.wait()
+                end
+            end)
+        end
     end
 )
 
