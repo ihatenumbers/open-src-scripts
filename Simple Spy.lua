@@ -2103,6 +2103,24 @@ newButton(
     end
 )
 
+--- Clears the Remote logs
+newButton(
+    "Clr Logs",
+    function() return "Click to clear logs" end,
+    function()
+        TextLabel.Text = "Clearing..."
+        clear(logs)
+        for i,v in next, LogList:GetChildren() do
+            if not v:IsA("UIListLayout") then
+                v:Destroy()
+            end
+        end
+        codebox:setRaw("")
+        selected = nil
+        TextLabel.Text = "Logs cleared!"
+    end
+)
+
 --- Decompiles the script that fired the remote and puts it in the code box
 newButton("Function Info",function() return "Click to view calling function information" end,
 function()
@@ -2163,24 +2181,6 @@ function()
         TextLabel.Text = "Error! Selected function was not found."
     end
 end)
-
---- Clears the Remote logs
-newButton(
-    "Clr Logs",
-    function() return "Click to clear logs" end,
-    function()
-        TextLabel.Text = "Clearing..."
-        clear(logs)
-        for i,v in next, LogList:GetChildren() do
-            if not v:IsA("UIListLayout") then
-                v:Destroy()
-            end
-        end
-        codebox:setRaw("")
-        selected = nil
-        TextLabel.Text = "Logs cleared!"
-    end
-)
 
 --- Excludes the selected.Log Remote from the RemoteSpy
 newButton(
