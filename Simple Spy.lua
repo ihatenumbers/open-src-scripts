@@ -2058,6 +2058,7 @@ newButton("Run Code",
 )
 
 local loopRunEnabled = false
+
 newButton("Loop Run",
     function()
         return string.format("[%s] Repeatedly run the selected remote", loopRunEnabled and "ENABLED" or "DISABLED")
@@ -2068,9 +2069,10 @@ newButton("Loop Run",
 
         if loopRunEnabled then
             task.spawn(function()
+                configs.logcheckcaller = false
                 while loopRunEnabled do
-                    local Remote = selected and selected.Remote
-                    if Remote and selected and selected.args then
+                    if selected and selected.Remote and selected.args then
+                        local Remote = selected.Remote
                         xpcall(function()
                             if Remote:IsA("RemoteEvent") or Remote:IsA("UnreliableRemoteEvent") then
                                 Remote:FireServer(unpack(selected.args))
@@ -2083,6 +2085,7 @@ newButton("Loop Run",
                     end
                     task.wait()
                 end
+                configs.logcheckcaller = true
             end)
         end
     end
