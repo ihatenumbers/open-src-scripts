@@ -115,7 +115,7 @@ local AntiFail = Main:CreateButton({
 local Asdaasdadsad = Main:CreateSection("Other shit")
 
 local AutoClaim = Main:CreateToggle({
-    Name = "Auto Claim Quests",
+    Name = "Auto Claim Playtime",
     CurrentValue = false,
     Callback = function(Value)
         _G.autoclaim = Value
