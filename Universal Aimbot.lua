@@ -142,7 +142,7 @@ local function getTarget()
                     local cursorDistance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
 
                     if cursorDistance < shortestCursorDistance then
-                        if not checkWall(player.Character) or not wallCheck then
+                        if not wallCheck or not checkWall(player.Character) then
                             shortestCursorDistance = cursorDistance
                             nearestPlayer = player
                             closestPart = targetPart
