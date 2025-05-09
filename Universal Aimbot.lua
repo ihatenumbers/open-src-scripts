@@ -29,16 +29,16 @@ local hue = 0
 local rainbowFov = false
 local rainbowSpeed = 0.005
 
-local aimFov = 100
+local aimFov = 120
 local aimParts = {"Head"}
 local aiming = false
-local predictionStrength = 0.065
-local smoothing = 0.05
+local predictionStrength = 0.02
+local smoothing = 0.65
 
-local aimbotEnabled = false
+local aimbotEnabled = true
 local wallCheck = true
 local stickyAimEnabled = false
-local teamCheck = false
+local teamCheck = true
 local healthCheck = false
 local minHealth = 0
 
